@@ -25,4 +25,9 @@ rtree-*.tar
 # Temporary files, for example, from tests.
 /tmp/
 
+# Lsp files
 .elixir_ls
+
+# Development notes
+elixir.org
+rtree.org
