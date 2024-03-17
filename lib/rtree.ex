@@ -47,6 +47,7 @@ defmodule RBoundingBox do
   def increases(object, box1 = %__MODULE__{}, box2 = %__MODULE__{}) do
     increase1 = update(box1, object).area - box1.area
     increase2 = update(box2, object).area - box2.area
+
     {increase1, increase2}
   end
 end
@@ -90,7 +91,7 @@ defmodule RTree do
     {increase1, increase2} =
       RBoundingBox.increases(object, left.bounding, right.bounding)
 
-    if increase1 < increase2 do
+    if increase1 <= increase2 do
       %RNode{
         node
         | bounding: RBoundingBox.update(node.bounding, object),
@@ -140,6 +141,7 @@ defmodule Main do
     |> RTree.insert(%RObject{x: 30, y: 10, data: "data"})
     |> RTree.insert(%RObject{x: 1, y: 10, data: "data"})
     |> RTree.insert(%RObject{x: 40, y: 7, data: "data"})
+    |> RTree.insert(%RObject{x: 19, y: 25, data: "data"})
     |> IO.inspect()
   end
 end
