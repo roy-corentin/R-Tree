@@ -7,7 +7,7 @@ defmodule RBoundingBox do
 
   @spec update(nil, %{x: integer, y: integer}) :: %RBoundingBox{}
   def update(nil, %{x: x, y: y}) do
-    %RBoundingBox{min_x: x - 1, min_y: y - 1, max_x: x + 1, max_y: y + 1}
+    %RBoundingBox{min_x: x, min_y: y, max_x: x, max_y: y}
   end
 
   def update(box = %RBoundingBox{}, %{x: x, y: y}) do
