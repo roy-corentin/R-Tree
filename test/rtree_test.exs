@@ -3,7 +3,7 @@ defmodule RTreeTest do
   doctest RTree
 
   describe "RTree" do
-    test "insert" do
+    test "#insert basic" do
       node = %RNode{}
       object = %RObject{x: 1, y: 1, data: "data"}
 
@@ -14,7 +14,7 @@ defmodule RTreeTest do
              }
     end
 
-    test "insert more than @m objects" do
+    test "#insert insert more than @m objects" do
       node = %RNode{}
       objects = for i <- 1..3, do: %RObject{x: i, y: i, data: "data"}
       node = Enum.reduce(objects, node, fn object, acc -> RTree.insert(acc, object) end)
@@ -43,7 +43,7 @@ defmodule RTreeTest do
              }
     end
 
-    test "insert two time more than @m objects" do
+    test "#insert insert two time more than @m objects" do
       node = %RNode{}
       objects = for i <- 1..5, do: %RObject{x: i, y: i, data: "data"}
       node = Enum.reduce(objects, node, fn object, acc -> RTree.insert(acc, object) end)
@@ -83,6 +83,22 @@ defmodule RTreeTest do
                  }
                }
              }
+    end
+
+    test "#search should find node if exist" do
+      node = %RNode{}
+      objects = for i <- 1..5, do: %RObject{x: i, y: i, data: "data"}
+      node = Enum.reduce(objects, node, fn object, acc -> RTree.insert(acc, object) end)
+
+      assert RTree.search(node, %{x: 3, y: 3}) == {:ok, %RObject{x: 3, y: 3, data: "data"}}
+    end
+
+    test "#search when not exist return not found" do
+      node = %RNode{}
+      objects = for i <- 1..5, do: %RObject{x: i, y: i, data: "data"}
+      node = Enum.reduce(objects, node, fn object, acc -> RTree.insert(acc, object) end)
+
+      assert RTree.search(node, %{x: 6, y: 6}) == {:error, "Not found"}
     end
   end
 end

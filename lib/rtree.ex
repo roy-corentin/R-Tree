@@ -50,6 +50,14 @@ defmodule RBoundingBox do
 
     {increase1, increase2}
   end
+
+  def contains?(box = %__MODULE__{}, %{x: x, y: y}) do
+    x >= box.min_x and x <= box.max_x and y >= box.min_y and y <= box.max_y
+  end
+
+  def contains?(%{bounding: %__MODULE__{} = bounding}, %{x: x, y: y}) do
+    contains?(bounding, %{x: x, y: y})
+  end
 end
 
 defmodule RObject do
@@ -70,6 +78,26 @@ end
 
 defmodule RTree do
   @m 2
+
+  @spec search(%RNode{}, %{x: integer, y: integer}) :: {:ok, %RObject{}} | {:error, String.t()}
+  def search(node = %RNode{children: nil}, %{x: x, y: y}) do
+    case Enum.find(node.objects, fn object -> object.x == x and object.y == y end) do
+      nil -> {:error, "Not found"}
+      object -> {:ok, object}
+    end
+  end
+
+  def search(node = %RNode{children: %{left: left, right: right}}, point) do
+    if RBoundingBox.contains?(node, point) do
+      if RBoundingBox.contains?(left, point) do
+        search(left, point)
+      else
+        search(right, point)
+      end
+    else
+      {:error, "Not found"}
+    end
+  end
 
   @spec insert(%RNode{}, %RObject{}) :: %RNode{}
   def insert(node = %RNode{children: nil}, object = %RObject{}) do
