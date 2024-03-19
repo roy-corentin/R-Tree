@@ -100,5 +100,28 @@ defmodule RTreeTest do
 
       assert RTree.search(node, %{x: 6, y: 6}) == {:error, "Not found"}
     end
+
+    test "#search when objects in boundary return them" do
+      node = %RNode{}
+      objects = for i <- 1..5, do: %RObject{x: i, y: i, data: "data"}
+      node = Enum.reduce(objects, node, fn object, acc -> RTree.insert(acc, object) end)
+
+      assert RTree.search(node, %RBoundingBox{min_x: 2, min_y: 2, max_x: 5, max_y: 5, area: 9}) ==
+               [
+                 %RObject{x: 2, y: 2, data: "data"},
+                 %RObject{x: 3, y: 3, data: "data"},
+                 %RObject{x: 4, y: 4, data: "data"},
+                 %RObject{x: 5, y: 5, data: "data"}
+               ]
+    end
+
+    test "#search when objects not in boundary return empty list" do
+      node = %RNode{}
+      objects = for i <- 1..5, do: %RObject{x: i, y: i, data: "data"}
+      node = Enum.reduce(objects, node, fn object, acc -> RTree.insert(acc, object) end)
+
+      assert RTree.search(node, %RBoundingBox{min_x: 6, min_y: 6, max_x: 7, max_y: 7, area: 1}) ==
+               []
+    end
   end
 end

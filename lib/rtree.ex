@@ -51,12 +51,21 @@ defmodule RBoundingBox do
     {increase1, increase2}
   end
 
+  @spec contains?(%__MODULE__{}, %{x: integer, y: integer}) :: boolean
   def contains?(box = %__MODULE__{}, %{x: x, y: y}) do
     x >= box.min_x and x <= box.max_x and y >= box.min_y and y <= box.max_y
   end
 
-  def contains?(%{bounding: %__MODULE__{} = bounding}, %{x: x, y: y}) do
-    contains?(bounding, %{x: x, y: y})
+  def contains?(%{bounding: %__MODULE__{} = bounding}, point) do
+    contains?(bounding, point)
+  end
+
+  @spec transpose?(%{bounding: %__MODULE__{}}, %__MODULE__{}) :: boolean
+  def transpose?(%{bounding: %__MODULE__{} = bounding}, bounding2 = %RBoundingBox{}) do
+    contains?(bounding, %{x: bounding2.min_x, y: bounding2.min_y}) or
+      contains?(bounding, %{x: bounding2.max_x, y: bounding2.min_y}) or
+      contains?(bounding, %{x: bounding2.min_x, y: bounding2.max_y}) or
+      contains?(bounding, %{x: bounding2.max_x, y: bounding2.max_y})
   end
 end
 
@@ -70,6 +79,7 @@ defmodule RNode do
   @type children :: %{left: %RNode{}, right: %RNode{}}
   defstruct bounding: nil, children: nil, objects: []
 
+  @spec create(%{objects: list(%RObject{})}) :: %__MODULE__{}
   def create(%{objects: objects}) do
     box = Enum.reduce(objects, nil, fn object, acc -> RBoundingBox.update(acc, object) end)
     %__MODULE__{bounding: box, objects: objects}
@@ -79,7 +89,8 @@ end
 defmodule RTree do
   @m 2
 
-  @spec search(%RNode{}, %{x: integer, y: integer}) :: {:ok, %RObject{}} | {:error, String.t()}
+  @spec search(%RNode{children: nil}, %{x: integer, y: integer}) ::
+          {:ok, %RObject{}} | {:error, String.t()}
   def search(node = %RNode{children: nil}, %{x: x, y: y}) do
     case Enum.find(node.objects, fn object -> object.x == x and object.y == y end) do
       nil -> {:error, "Not found"}
@@ -87,7 +98,7 @@ defmodule RTree do
     end
   end
 
-  def search(node = %RNode{children: %{left: left, right: right}}, point) do
+  def search(node = %RNode{children: %{left: left, right: right}}, point = %{x: _, y: _}) do
     if RBoundingBox.contains?(node, point) do
       if RBoundingBox.contains?(left, point) do
         search(left, point)
@@ -96,6 +107,19 @@ defmodule RTree do
       end
     else
       {:error, "Not found"}
+    end
+  end
+
+  @spec search(%RNode{children: nil}, %RBoundingBox{}) :: list(%RObject{})
+  def search(node = %RNode{children: nil}, bounding = %RBoundingBox{}) do
+    Enum.filter(node.objects, fn object -> RBoundingBox.contains?(bounding, object) end)
+  end
+
+  def search(node = %RNode{children: %{left: left, right: right}}, bounding = %RBoundingBox{}) do
+    if RBoundingBox.transpose?(node, bounding) do
+      search(left, bounding) ++ search(right, bounding)
+    else
+      []
     end
   end
 
