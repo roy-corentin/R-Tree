@@ -6,8 +6,20 @@ defmodule Rtree.MixProject do
       app: :rtree,
       version: "0.1.0",
       elixir: "~> 1.16",
+      source_url: "https://github.com/roy-corentin/R-Tree",
+      homepage_url: "https://github.com/roy-corentin/R-Tree",
       start_permanent: Mix.env() == :prod,
-      deps: deps()
+      deps: deps(),
+      package: [
+        maintainers: ["Roy Corentin"],
+        links: %{
+          "GitHub" => "https://github.com/roy-corentin/R-Tree"
+        }
+        licenses: ["MIT"],
+      ],
+      docs: [
+        extras: ["README.org"]
+      ]
     ]
   end
 
