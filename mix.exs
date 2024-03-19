@@ -14,8 +14,8 @@ defmodule Rtree.MixProject do
         maintainers: ["Roy Corentin"],
         links: %{
           "GitHub" => "https://github.com/roy-corentin/R-Tree"
-        }
-        licenses: ["MIT"],
+        },
+        licenses: ["MIT"]
       ],
       docs: [
         extras: ["README.org"]
