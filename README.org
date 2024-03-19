@@ -3,14 +3,14 @@
 ** Description
 This is a total (crash) test of an implementation of =R-Tree= data structure in =Elixir=
 
-** Installation (not functional)
+** Installation 
 If [[available in Hex][https://hex.pm/docs/publish]], the package can be installed
 by adding `rtree` to your list of dependencies in `mix.exs`:
 
 #+begin_src elixir
 def deps do
   [
-    {:rtree, "~> 0.1.0"}
+    {:rtree, github: "roy-corentin/R-Tree"}
   ]
 end
 #+end_src
