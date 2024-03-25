@@ -4,7 +4,7 @@ defmodule Rtree.MixProject do
   def project do
     [
       app: :rtree,
-      version: "0.1.0",
+      version: "0.1.1",
       elixir: "~> 1.16",
       source_url: "https://github.com/roy-corentin/R-Tree",
       homepage_url: "https://github.com/roy-corentin/R-Tree",
