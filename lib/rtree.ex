@@ -183,19 +183,3 @@ defmodule RTree do
     end
   end
 end
-
-defmodule Main do
-  def main do
-    %RNode{}
-    |> RTree.insert(%RObject{x: 1, y: 2, data: "data"})
-    |> RTree.insert(%RObject{x: 20, y: 30, data: "data"})
-    |> RTree.insert(%RObject{x: 15, y: 18, data: "data"})
-    |> RTree.insert(%RObject{x: 30, y: 10, data: "data"})
-    |> RTree.insert(%RObject{x: 1, y: 10, data: "data"})
-    |> RTree.insert(%RObject{x: 40, y: 7, data: "data"})
-    |> RTree.insert(%RObject{x: 19, y: 25, data: "data"})
-    |> IO.inspect()
-  end
-end
-
-Main.main()
