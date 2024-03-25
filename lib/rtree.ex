@@ -75,26 +75,26 @@ end
 
 defmodule RNode do
   @type bounding :: %RBoundingBox{}
-  @type objects :: list(%RObject{})
   @type children :: %{left: %RNode{}, right: %RNode{}}
-  defstruct bounding: nil, children: nil, objects: []
+  @type objects :: list(%RObject{})
+  @type limit :: integer
+  defstruct bounding: nil, children: nil, objects: [], limit: nil
 
-  @spec create(%{objects: list(%RObject{})}) :: %__MODULE__{}
-  def create(%{objects: objects}) do
+  @spec create(%{objects: list(%RObject{}), limit: integer}) :: %__MODULE__{}
+  def create(%{objects: objects, limit: limit}) do
     box = Enum.reduce(objects, nil, fn object, acc -> RBoundingBox.update(acc, object) end)
-    %__MODULE__{bounding: box, objects: objects}
+    %__MODULE__{bounding: box, objects: objects, limit: limit}
   end
 end
 
 defmodule RTree do
-  @m 2
-
   @spec search(%RNode{children: nil}, %{x: integer, y: integer}) ::
           {:ok, %RObject{}} | {:error, String.t()}
   def search(node = %RNode{children: nil}, %{x: x, y: y}) do
-    case Enum.find(node.objects, fn object -> object.x == x and object.y == y end) do
+    with object <- Enum.find(node.objects, fn object -> object.x == x and object.y == y end) do
+      {:ok, object}
+    else
       nil -> {:error, "Not found"}
-      object -> {:ok, object}
     end
   end
 
@@ -116,7 +116,7 @@ defmodule RTree do
   end
 
   def search(node = %RNode{children: %{left: left, right: right}}, bounding = %RBoundingBox{}) do
-    if RBoundingBox.transpose?(node, bounding) do
+    if node |> RBoundingBox.transpose?(bounding) do
       search(left, bounding) ++ search(right, bounding)
     else
       []
@@ -131,8 +131,8 @@ defmodule RTree do
         objects: node.objects ++ [object]
     }
 
-    if length(node.objects) > @m do
-      %RNode{node | objects: [], children: split(node.objects)}
+    if length(node.objects) > node.limit do
+      %RNode{node | objects: [], children: split(node)}
     else
       node
     end
@@ -158,14 +158,14 @@ defmodule RTree do
     end
   end
 
-  defp split(objects) do
+  defp split(%{objects: objects, limit: limit}) do
     {left, right} = Enum.min_max_by(objects, fn object -> object.x + object.y end)
 
     {left_leaf, right_leaf} =
-      {RNode.create(%{objects: [left]}), RNode.create(%{objects: [right]})}
+      {RNode.create(%{objects: [left], limit: limit}),
+       RNode.create(%{objects: [right], limit: limit})}
 
-    (objects -- [left, right])
-    |> distribute(left_leaf, right_leaf)
+    (objects -- [left, right]) |> distribute(left_leaf, right_leaf)
   end
 
   defp distribute([], leaf_left, leaf_right) do
