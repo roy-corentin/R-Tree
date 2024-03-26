@@ -1,12 +1,12 @@
 defmodule RBoundingBox do
-  @type min_x :: integer
-  @type min_y :: integer
-  @type max_x :: integer
-  @type max_y :: integer
-  @type area :: integer
+  @type min_x :: float
+  @type min_y :: float
+  @type max_x :: float
+  @type max_y :: float
+  @type area :: float
   defstruct min_x: 0, min_y: 0, max_x: 0, max_y: 0, area: 0
 
-  @spec create(%{x: integer, y: integer}, %{x: integer, y: integer}) :: %RBoundingBox{}
+  @spec create(%{x: float, y: float}, %{x: float, y: float}) :: %RBoundingBox{}
   def create(%{x: x1, y: y1}, %{x: x2, y: y2}) do
     min_x = min(x1, x2)
     min_y = min(y1, y2)
@@ -23,7 +23,7 @@ defmodule RBoundingBox do
     }
   end
 
-  @spec update(nil, %{x: integer, y: integer}) :: %__MODULE__{}
+  @spec update(nil, %{x: float, y: float}) :: %__MODULE__{}
   def update(nil, %{x: x, y: y}) do
     %__MODULE__{min_x: x, min_y: y, max_x: x, max_y: y, area: 0}
   end
@@ -51,7 +51,7 @@ defmodule RBoundingBox do
     {increase1, increase2}
   end
 
-  @spec contains?(%__MODULE__{}, %{x: integer, y: integer}) :: boolean
+  @spec contains?(%__MODULE__{}, %{x: float, y: float}) :: boolean
   def contains?(box = %__MODULE__{}, %{x: x, y: y}) do
     x >= box.min_x and x <= box.max_x and y >= box.min_y and y <= box.max_y
   end
@@ -88,7 +88,7 @@ defmodule RNode do
 end
 
 defmodule RTree do
-  @spec search(%RNode{children: nil}, %{x: integer, y: integer}) ::
+  @spec search(%RNode{children: nil}, %{x: float, y: float}) ::
           {:ok, %RObject{}} | {:error, String.t()}
   def search(node = %RNode{children: nil}, %{x: x, y: y}) do
     with object <- Enum.find(node.objects, fn object -> object.x == x and object.y == y end) do
