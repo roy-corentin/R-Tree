@@ -60,12 +60,10 @@ defmodule RBoundingBox do
     contains?(bounding, point)
   end
 
-  @spec transpose?(%{bounding: %__MODULE__{}}, %__MODULE__{}) :: boolean
-  def transpose?(%{bounding: %__MODULE__{} = bounding}, bounding2 = %RBoundingBox{}) do
-    contains?(bounding, %{x: bounding2.min_x, y: bounding2.min_y}) or
-      contains?(bounding, %{x: bounding2.max_x, y: bounding2.min_y}) or
-      contains?(bounding, %{x: bounding2.min_x, y: bounding2.max_y}) or
-      contains?(bounding, %{x: bounding2.max_x, y: bounding2.max_y})
+  @spec overlaps?(%__MODULE__{}, %__MODULE__{}) :: boolean
+  def overlaps?(bounding = %__MODULE__{}, bounding2 = %__MODULE__{}) do
+    !(bounding.min_x > bounding2.max_x or bounding2.min_x > bounding.max_x or
+        bounding.max_y < bounding2.min_y or bounding2.max_y < bounding.min_y)
   end
 end
 
@@ -98,9 +96,12 @@ defmodule RTree do
     end
   end
 
-  def search(node = %RNode{children: %{left: left, right: right}}, point = %{x: _, y: _}) do
-    if RBoundingBox.contains?(node, point) do
-      if RBoundingBox.contains?(left, point) do
+  def search(
+        %RNode{children: %{left: left, right: right}, bounding: bounding},
+        point = %{x: _, y: _}
+      ) do
+    if bounding |> RBoundingBox.contains?(point) do
+      if left |> RBoundingBox.contains?(point) do
         search(left, point)
       else
         search(right, point)
@@ -115,8 +116,11 @@ defmodule RTree do
     Enum.filter(node.objects, fn object -> RBoundingBox.contains?(bounding, object) end)
   end
 
-  def search(node = %RNode{children: %{left: left, right: right}}, bounding = %RBoundingBox{}) do
-    if node |> RBoundingBox.transpose?(bounding) do
+  def search(
+        %RNode{children: %{left: left, right: right}, bounding: node_bounding},
+        bounding = %RBoundingBox{}
+      ) do
+    if node_bounding |> RBoundingBox.overlaps?(bounding) do
       search(left, bounding) ++ search(right, bounding)
     else
       []

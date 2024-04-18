@@ -185,5 +185,26 @@ defmodule RTreeTest do
       assert RTree.search(node, %RBoundingBox{min_x: 6, min_y: 6, max_x: 7, max_y: 7, area: 1}) ==
                []
     end
+
+    test "#overlaps? no overlaping box" do
+      box1 = %RBoundingBox{min_x: 1, min_y: 1, max_x: 2, max_y: 2, area: 1}
+      box2 = %RBoundingBox{min_x: 3, min_y: 3, max_x: 4, max_y: 4, area: 1}
+
+      assert RBoundingBox.overlaps?(box1, box2) == false
+    end
+
+    test "#overlaps? overlaping box" do
+      box1 = %RBoundingBox{min_x: 1, min_y: 1, max_x: 2, max_y: 2, area: 1}
+      box2 = %RBoundingBox{min_x: 2, min_y: 2, max_x: 4, max_y: 4, area: 4}
+
+      assert RBoundingBox.overlaps?(box1, box2) == true
+    end
+
+    test "#overlaps? overlaping boxes but with any corner inside the other" do
+      box1 = %RBoundingBox{min_x: 1, min_y: 2, max_x: 5, max_y: 3, area: 1}
+      box2 = %RBoundingBox{min_x: 2, min_y: 1, max_x: 4, max_y: 4, area: 4}
+
+      assert RBoundingBox.overlaps?(box1, box2) == true
+    end
   end
 end
