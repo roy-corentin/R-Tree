@@ -186,6 +186,23 @@ defmodule RTreeTest do
                []
     end
 
+    test "#search when object are geographically placed" do
+      node =
+        %RNode{limit: 2}
+        |> RTree.insert(%RObject{x: -0.4112, y: 44.71822, data: "Cabane"})
+        |> RTree.insert(%RObject{x: -0.4488072, y: 44.9927417, data: "Café Bar"})
+        |> RTree.insert(%RObject{x: -0.6440557, y: 44.8053852, data: "Clé du vin"})
+        |> RTree.insert(%RObject{x: -0.5875809, y: 44.8123241, data: "La Parcelle"})
+        |> RTree.insert(%RObject{x: -0.6189449, y: 44.7742669, data: "To be wine"})
+
+      assert RTree.search(node, %RBoundingBox{
+               max_x: -0.42,
+               min_x: -0.59,
+               min_y: 44.7,
+               max_y: 44.9
+             }) != []
+    end
+
     test "#overlaps? no overlaping box" do
       box1 = %RBoundingBox{min_x: 1, min_y: 1, max_x: 2, max_y: 2, area: 1}
       box2 = %RBoundingBox{min_x: 3, min_y: 3, max_x: 4, max_y: 4, area: 1}
