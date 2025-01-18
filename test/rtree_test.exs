@@ -2,9 +2,12 @@ defmodule RTreeTest do
   use ExUnit.Case
   doctest RTree
 
+  setup do
+    {:ok, node: %RNode{limit: 2}}
+  end
+
   describe "RTree" do
-    test "#insert basic" do
-      node = %RNode{limit: 2}
+    test "#insert basic", %{node: node} do
       object = %RObject{x: 1, y: 1, data: "data"}
 
       assert RTree.insert(node, object) == %RNode{
@@ -15,8 +18,7 @@ defmodule RTreeTest do
              }
     end
 
-    test "#insert insert more than the limit" do
-      node = %RNode{limit: 2}
+    test "#insert insert more than the limit", %{node: node} do
       objects = for i <- 1..3, do: %RObject{x: i, y: i, data: "data"}
       node = Enum.reduce(objects, node, fn object, acc -> RTree.insert(acc, object) end)
 
@@ -99,8 +101,7 @@ defmodule RTreeTest do
              }
     end
 
-    test "#insert insert two time more than the limit" do
-      node = %RNode{limit: 2}
+    test "#insert insert two time more than the limit", %{node: node} do
       objects = for i <- 1..5, do: %RObject{x: i, y: i, data: "data"}
       node = Enum.reduce(objects, node, fn object, acc -> RTree.insert(acc, object) end)
 
@@ -147,24 +148,21 @@ defmodule RTreeTest do
              }
     end
 
-    test "#search should find node if exist" do
-      node = %RNode{limit: 2}
+    test "#search should find node if exist", %{node: node} do
       objects = for i <- 1..5, do: %RObject{x: i, y: i, data: "data"}
       node = Enum.reduce(objects, node, fn object, acc -> RTree.insert(acc, object) end)
 
       assert RTree.search(node, %{x: 3, y: 3}) == {:ok, %RObject{x: 3, y: 3, data: "data"}}
     end
 
-    test "#search when not exist return not found" do
-      node = %RNode{limit: 2}
+    test "#search when not exist return not found", %{node: node} do
       objects = for i <- 1..5, do: %RObject{x: i, y: i, data: "data"}
       node = Enum.reduce(objects, node, fn object, acc -> RTree.insert(acc, object) end)
 
       assert RTree.search(node, %{x: 6, y: 6}) == {:error, "Not found"}
     end
 
-    test "#search when objects in boundary return them" do
-      node = %RNode{limit: 2}
+    test "#search when objects in boundary return them", %{node: node} do
       objects = for i <- 1..5, do: %RObject{x: i, y: i, data: "data"}
       node = Enum.reduce(objects, node, fn object, acc -> RTree.insert(acc, object) end)
 
@@ -177,8 +175,7 @@ defmodule RTreeTest do
                ]
     end
 
-    test "#search when objects not in boundary return empty list" do
-      node = %RNode{limit: 2}
+    test "#search when objects not in boundary return empty list", %{node: node} do
       objects = for i <- 1..5, do: %RObject{x: i, y: i, data: "data"}
       node = Enum.reduce(objects, node, fn object, acc -> RTree.insert(acc, object) end)
 
@@ -220,6 +217,20 @@ defmodule RTreeTest do
     test "#overlaps? overlaping boxes but with any corner inside the other" do
       box1 = %RBoundingBox{min_x: 1, min_y: 2, max_x: 5, max_y: 3, area: 1}
       box2 = %RBoundingBox{min_x: 2, min_y: 1, max_x: 4, max_y: 4, area: 4}
+
+      assert RBoundingBox.overlaps?(box1, box2) == true
+    end
+
+    test "#overlaps? edge case: boxes touch at a single point" do
+      box1 = %RBoundingBox{min_x: 1, min_y: 1, max_x: 2, max_y: 2, area: 1}
+      box2 = %RBoundingBox{min_x: 2, min_y: 2, max_x: 3, max_y: 3, area: 1}
+
+      assert RBoundingBox.overlaps?(box1, box2) == true
+    end
+
+    test "#overlaps? edge case: one box completely inside the other" do
+      box1 = %RBoundingBox{min_x: 1, min_y: 1, max_x: 4, max_y: 4, area: 9}
+      box2 = %RBoundingBox{min_x: 2, min_y: 2, max_x: 3, max_y: 3, area: 1}
 
       assert RBoundingBox.overlaps?(box1, box2) == true
     end
