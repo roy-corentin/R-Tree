@@ -175,21 +175,20 @@ defmodule RTree do
 
   @spec insert(%RNode{}, %RObject{}) :: %RNode{}
   def insert(node = %RNode{children: %{left: left, right: right}}, object = %RObject{}) do
-    {increase1, increase2} =
-      RBoundingBox.increases(object, left.bounding, right.bounding)
+    case RBoundingBox.choose_smallest_increase(object, left.bounding, right.bounding) do
+      {:left} ->
+        %RNode{
+          node
+          | bounding: RBoundingBox.update(node.bounding, object),
+            children: %{left: insert(left, object), right: right}
+        }
 
-    if increase1 <= increase2 do
-      %RNode{
-        node
-        | bounding: RBoundingBox.update(node.bounding, object),
-          children: %{left: insert(left, object), right: right}
-      }
-    else
-      %RNode{
-        node
-        | bounding: RBoundingBox.update(node.bounding, object),
-          children: %{left: left, right: insert(right, object)}
-      }
+      {:right} ->
+        %RNode{
+          node
+          | bounding: RBoundingBox.update(node.bounding, object),
+            children: %{left: left, right: insert(right, object)}
+        }
     end
   end
 
@@ -208,13 +207,9 @@ defmodule RTree do
   end
 
   defp distribute([object | rest], leaf_left, leaf_right) do
-    {left_increase, right_increase} =
-      RBoundingBox.increases(object, leaf_left.bounding, leaf_right.bounding)
-
-    if left_increase <= right_increase do
-      distribute(rest, insert(leaf_left, object), leaf_right)
-    else
-      distribute(rest, leaf_left, insert(leaf_right, object))
+    case RBoundingBox.choose_smallest_increase(object, leaf_left.bounding, leaf_right.bounding) do
+      {:left} -> distribute(rest, insert(leaf_left, object), leaf_right)
+      {:right} -> distribute(rest, leaf_left, insert(leaf_right, object))
     end
   end
 end
