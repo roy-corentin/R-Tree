@@ -118,10 +118,9 @@ defmodule RTree do
   @spec search(%RNode{children: nil}, %{x: float(), y: float()}) ::
           {:ok, %RObject{}} | {:error, String.t()}
   def search(%RNode{children: nil} = node, %{x: x, y: y}) do
-    case Enum.find(node.objects, fn object -> object.x == x and object.y == y end) do
-      nil -> {:error, "Not found"}
-      object -> {:ok, object}
-    end
+    Enum.find_value(node.objects, {:error, "Not found"}, fn object ->
+      if object.x == x and object.y == y, do: {:ok, object}, else: nil
+    end)
   end
 
   def search(
