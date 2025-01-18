@@ -1,12 +1,16 @@
 defmodule RBoundingBox do
-  @type min_x :: float
-  @type min_y :: float
-  @type max_x :: float
-  @type max_y :: float
-  @type area :: float
+  @type min_x :: float()
+  @type min_y :: float()
+  @type max_x :: float()
+  @type max_y :: float()
+  @type area :: float()
+
   defstruct min_x: 0, min_y: 0, max_x: 0, max_y: 0, area: 0
 
-  @spec create(%{x: float, y: float}, %{x: float, y: float}) :: %RBoundingBox{}
+  @doc """
+  Creates a new bounding box from two points.
+  """
+  @spec create(%{x: float(), y: float()}, %{x: float(), y: float()}) :: %RBoundingBox{}
   def create(%{x: x1, y: y1}, %{x: x2, y: y2}) do
     min_x = min(x1, x2)
     min_y = min(y1, y2)
@@ -23,7 +27,10 @@ defmodule RBoundingBox do
     }
   end
 
-  @spec update(nil, %{x: float, y: float}) :: %__MODULE__{}
+  @doc """
+  Updates the bounding box to include a new point.
+  """
+  @spec update(nil, %{x: float(), y: float()}) :: %__MODULE__{}
   def update(nil, %{x: x, y: y}) do
     %__MODULE__{min_x: x, min_y: y, max_x: x, max_y: y, area: 0}
   end
@@ -44,14 +51,24 @@ defmodule RBoundingBox do
     }
   end
 
-  def increases(object, box1 = %__MODULE__{}, box2 = %__MODULE__{}) do
+  @doc """
+  Chooses the bounding box with the smallest area increase for adding a point.
+  """
+  def choose_smallest_increase(object, box1 = %__MODULE__{}, box2 = %__MODULE__{}) do
     increase1 = update(box1, object).area - box1.area
     increase2 = update(box2, object).area - box2.area
 
-    {increase1, increase2}
+    if increase1 <= increase2 do
+      {:left}
+    else
+      {:right}
+    end
   end
 
-  @spec contains?(%__MODULE__{}, %{x: float, y: float}) :: boolean
+  @doc """
+  Checks if a point is contained within the bounding box.
+  """
+  @spec contains?(%__MODULE__{}, %{x: float(), y: float()}) :: boolean()
   def contains?(box = %__MODULE__{}, %{x: x, y: y}) do
     x >= box.min_x and x <= box.max_x and y >= box.min_y and y <= box.max_y
   end
@@ -60,7 +77,10 @@ defmodule RBoundingBox do
     contains?(bounding, point)
   end
 
-  @spec overlaps?(%__MODULE__{}, %__MODULE__{}) :: boolean
+  @doc """
+  Checks if two bounding boxes overlap.
+  """
+  @spec overlaps?(%__MODULE__{}, %__MODULE__{}) :: boolean()
   def overlaps?(bounding = %__MODULE__{}, bounding2 = %__MODULE__{}) do
     !(bounding.min_x > bounding2.max_x or bounding2.min_x > bounding.max_x or
         bounding.max_y < bounding2.min_y or bounding2.max_y < bounding.min_y)
@@ -75,10 +95,14 @@ defmodule RNode do
   @type bounding :: %RBoundingBox{}
   @type children :: %{left: %RNode{}, right: %RNode{}}
   @type objects :: list(%RObject{})
-  @type limit :: integer
+  @type limit :: integer()
+
   defstruct bounding: nil, children: nil, objects: [], limit: nil
 
-  @spec create(%{objects: list(%RObject{}), limit: integer}) :: %__MODULE__{}
+  @doc """
+  Creates a new node with the given objects and limit.
+  """
+  @spec create(%{objects: list(%RObject{}), limit: integer()}) :: %__MODULE__{}
   def create(%{objects: objects, limit: limit}) do
     box = Enum.reduce(objects, nil, fn object, acc -> RBoundingBox.update(acc, object) end)
     %__MODULE__{bounding: box, objects: objects, limit: limit}
@@ -86,7 +110,12 @@ defmodule RNode do
 end
 
 defmodule RTree do
-  @spec search(%RNode{children: nil}, %{x: float, y: float}) ::
+  @doc """
+  Searches for a point in the R-tree.
+  or
+  Searches for objects within a bounding box in the R-tree.
+  """
+  @spec search(%RNode{children: nil}, %{x: float(), y: float()}) ::
           {:ok, %RObject{}} | {:error, String.t()}
   def search(node = %RNode{children: nil}, %{x: x, y: y}) do
     with object <- Enum.find(node.objects, fn object -> object.x == x and object.y == y end) do
@@ -127,6 +156,9 @@ defmodule RTree do
     end
   end
 
+  @doc """
+  Inserts an object into the R-tree.
+  """
   @spec insert(%RNode{}, %RObject{}) :: %RNode{}
   def insert(node = %RNode{children: nil}, object = %RObject{}) do
     node = %RNode{
