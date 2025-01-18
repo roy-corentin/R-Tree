@@ -117,11 +117,10 @@ defmodule RTree do
   """
   @spec search(%RNode{children: nil}, %{x: float(), y: float()}) ::
           {:ok, %RObject{}} | {:error, String.t()}
-  def search(node = %RNode{children: nil}, %{x: x, y: y}) do
-    with object <- Enum.find(node.objects, fn object -> object.x == x and object.y == y end) do
-      {:ok, object}
-    else
+  def search(%RNode{children: nil} = node, %{x: x, y: y}) do
+    case Enum.find(node.objects, fn object -> object.x == x and object.y == y end) do
       nil -> {:error, "Not found"}
+      object -> {:ok, object}
     end
   end
 
